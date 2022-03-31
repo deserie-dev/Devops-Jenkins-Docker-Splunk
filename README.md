@@ -7,7 +7,7 @@ In this lab, I launched a Jenkins and Splunk CICD and monitoring environment usi
 
 ---
 
-Launch the Jenkins and Splunk docker environment.
+Launched the Jenkins and Splunk docker environment.
 
 ```
 docker pull jenkins/jenkins:lts
@@ -18,6 +18,54 @@ docker-compose up -d && docker-compose logs -f
 
 ![](/images/2.png)
 
-Confirm that the Jenkins, Splunk, and Socat docker containers are up and running:
+Confirmed that the Jenkins, Splunk, and Socat docker containers were up and running:
 
-![](/images/2.png)
+![](/images/3.png)
+
+After installing and configuring Jenkins, configured the Gradle and Docker tools required to compile a sample Java servlet web application into a WAR (Web application ARchive) artifact file, and then a docker image that uses Tomcat to serve the WAR artifact file created in the first build step. Configured the Gradle and Docker tools to be automatically installed at build time by Jenkins.
+
+Created a new build pipeline job that used Docker to compile and build a new docker image containing the newly created deployable WAR file.
+
+![](/images/6.png)
+
+![](/images/7.png)
+
+Used the _docker images_ command to confirm that the Jenkins build pipeline had successfully built
+
+![](/images/5.png)
+
+Launched the webapp docker container instance by running the command:
+
+```
+docker run --net lab -e CONTAINER_NETWORK=lab -e CONTAINER_SOCAT_ENABLED=true --name webapp -d -p 9999:8080 deserie/webapp:latest
+```
+
+Queried the splunk docker container assigned private IP address:
+
+```
+docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' splunk
+```
+
+Confirmed that the Splunk Forwarding Agent had been able to form a network connection to the Splunk docker container by executing the command:
+
+```
+docker exec -it webapp grep "INFO  TcpOutputProc - Connected to idx=" /opt/splunkforwarder/var/log/splunk/splunkd.log
+```
+
+Examined the Splunk Forwarder outputs.conf file (instructs the forwarder how to connect to the Splunk service):
+
+```
+docker exec -it webapp cat /opt/splunkforwarder/etc/system/local/outputs.conf
+```
+
+![](/images/15.png)
+
+Opened app in browser. The webapp docker container was configured to listen for inbound connections on port 9999.
+
+![](/images/9.png)
+
+Logged back into the Splunk administration web console and peformed an analysis on the collected data events sent from the webapp docker container instance.
+
+![](/images/11.png)
+
+![](/images/12.png)
